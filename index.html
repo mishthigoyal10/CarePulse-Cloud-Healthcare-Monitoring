@@ -1,0 +1,1142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarePulse | Smart Healthcare Monitoring</title>
+
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  .nav-item { cursor:pointer; border:0; width:100%; text-align:left; font:inherit; background:transparent; }
+  .nav-item.active { background:rgba(255,255,255,.12); }
+  .page-view { display:none; }
+  .page-view.active { display:block; }
+  .page-intro { margin-bottom:22px; }
+  .page-intro h1 { margin-bottom:7px; }
+  .page-intro p { color:#71869a; }
+  .action-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:18px 0; }
+  .action-btn { border:0; border-radius:8px; padding:11px 16px; background:#176b87; color:white; font-weight:600; cursor:pointer; }
+  .action-btn:disabled { opacity:.55; cursor:not-allowed; }
+  .secondary-btn { background:#eaf2f5; color:#176b87; }
+  .danger-btn { border:0; border-radius:7px; padding:7px 10px; background:#fff0f0; color:#b42318; cursor:pointer; font-weight:600; }
+  .data-table-wrap { overflow-x:auto; background:white; border:1px solid #e4edf1; border-radius:12px; }
+  .data-table { width:100%; border-collapse:collapse; min-width:760px; }
+  .data-table th,.data-table td { padding:13px 14px; border-bottom:1px solid #edf1f4; text-align:left; font-size:13px; white-space:nowrap; }
+  .data-table th { color:#60788c; background:#f7fafb; font-weight:700; }
+  .data-table tr:last-child td { border-bottom:0; }
+  .status-pill { display:inline-block; border-radius:20px; padding:5px 9px; font-size:12px; font-weight:700; }
+  .status-normal { background:#e8f7f0; color:#087443; }
+  .status-warning { background:#fff4df; color:#9a5b00; }
+  .status-danger { background:#fdecec; color:#b42318; }
+  .info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .info-tile { background:white; border:1px solid #e4edf1; border-radius:12px; padding:20px; }
+  .info-tile small { display:block; color:#71869a; margin-bottom:8px; }
+  .info-tile strong { font-size:20px; color:#17324d; overflow-wrap:anywhere; }
+  .muted-note { color:#71869a; font-size:13px; line-height:1.5; }
+  .table-message { padding:18px; color:#71869a; text-align:center; }
+  .chart-point-note { color:#71869a; font-size:12px; margin-top:8px; }
+  .alert-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+  .alert-stat{background:#fff;border:1px solid #e4edf1;border-radius:12px;padding:18px}
+  .alert-stat small{display:block;color:#71869a;margin-bottom:8px}
+  .alert-stat strong{font-size:25px;color:#17324d}
+  .alert-list{display:grid;gap:12px}
+  .alert-card{background:#fff;border:1px solid #e4edf1;border-left:5px solid #d99a28;border-radius:10px;padding:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+  .alert-card.critical{border-left-color:#b42318}
+  .alert-card.read{opacity:.72}
+  .alert-card h3{font-size:15px;margin:0 0 7px;color:#17324d}
+  .alert-meta{font-size:12px;color:#71869a;line-height:1.6}
+  .alert-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .alert-empty{background:#fff;border:1px dashed #cbd8df;border-radius:12px;padding:28px;text-align:center;color:#71869a}
+  @media(max-width:760px){.alert-stats{grid-template-columns:1fr}.alert-card{align-items:flex-start;flex-direction:column}}
+  @media(max-width:760px) { .info-grid { grid-template-columns:1fr; } .action-row { align-items:flex-start; } }
+</style>
+
+
+<style>
+.nav-item{cursor:pointer;border:0;width:100%;text-align:left;font:inherit;background:transparent}
+.nav-item.active{background:rgba(255,255,255,.12)}
+.page-view{display:none}.page-view.active{display:block}
+.page-intro{margin-bottom:22px}.page-intro h1{margin-bottom:7px}.page-intro p,.muted-note{color:#71869a}
+.action-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0}
+.action-btn{border:0;border-radius:8px;padding:11px 16px;background:#176b87;color:white;font-weight:600;cursor:pointer}
+.action-btn:disabled{opacity:.55;cursor:not-allowed}.secondary-btn{background:#eaf2f5;color:#176b87}
+.danger-btn{border:0;border-radius:7px;padding:7px 10px;background:#fff0f0;color:#b42318;cursor:pointer;font-weight:600}
+.data-table-wrap{overflow-x:auto;background:white;border:1px solid #e4edf1;border-radius:12px}
+.data-table{width:100%;border-collapse:collapse;min-width:760px}
+.data-table th,.data-table td{padding:13px 14px;border-bottom:1px solid #edf1f4;text-align:left;font-size:13px;white-space:nowrap}
+.data-table th{color:#60788c;background:#f7fafb;font-weight:700}
+.data-table tr:last-child td{border-bottom:0}
+.status-pill{display:inline-block;border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700}
+.status-normal{background:#e8f7f0;color:#087443}.status-warning{background:#fff4df;color:#9a5b00}.status-danger{background:#fdecec;color:#b42318}
+.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.info-tile{background:white;border:1px solid #e4edf1;border-radius:12px;padding:20px}
+.info-tile small{display:block;color:#71869a;margin-bottom:8px}
+.info-tile strong{font-size:20px;color:#17324d;overflow-wrap:anywhere}
+.table-message{padding:18px;color:#71869a;text-align:center}
+.chart-point-note{color:#71869a;font-size:12px;margin-top:8px}
+@media(max-width:760px){.info-grid{grid-template-columns:1fr}.action-row{align-items:flex-start}}
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN SCREEN -->
+<section id="loginPanel">
+  <div class="login-visual">
+    <div class="brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <div class="brand-name">CarePulse</div>
+        <div class="brand-sub">SMART HEALTHCARE</div>
+      </div>
+    </div>
+
+    <div class="login-copy">
+      <h1>Better patient care, powered by connected technology.</h1>
+      <p>
+        A cloud-based healthcare monitoring platform that brings
+        patient vital information together in one secure dashboard.
+      </p>
+      <div class="visual-stats">
+        <div><strong>24/7</strong><span>Monitoring concept</span></div>
+        <div><strong>Cloud</strong><span>Connected records</span></div>
+      </div>
+    </div>
+    <div class="login-foot">Smart Healthcare Monitoring System · Academic Project</div>
+  </div>
+
+  <div class="login-form-side">
+    <div class="login-box">
+      <h2>Welcome back</h2>
+      <p>Sign in to access your patient monitoring dashboard.</p>
+
+      <label class="field-label" for="email">Email address</label>
+      <input id="email" type="email" placeholder="Enter your email">
+
+      <label class="field-label" for="password">Password</label>
+      <input id="password" type="password" placeholder="Enter your password">
+
+      <button class="primary-btn" id="loginBtn">Sign in to dashboard →</button>
+      <p id="message"></p>
+      <div class="login-note">🔒 Secure sign-in · Authorised access only</div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <div class="brand-name">CarePulse</div>
+        <div class="brand-sub">SMART HEALTHCARE</div>
+      </div>
+    </div>
+
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav-item active" data-view="overview">▦ &nbsp; Overview</button>
+    <button class="nav-item" data-view="monitoring">♡ &nbsp; Patient Monitoring</button>
+    <button class="nav-item" data-view="records">▤ &nbsp; Patient Records</button>
+    <button class="nav-item" data-view="alerts">⚠ &nbsp; Alerts</button>
+
+    <div class="nav-label">SYSTEM</div>
+    <button class="nav-item" data-view="cloud">☁ &nbsp; Cloud Database</button>
+
+    <div class="sidebar-bottom">
+      CarePulse Academic Prototype<br>
+      Cloud-connected monitoring
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h2>Healthcare Dashboard</h2>
+        <p>Patient monitoring and vital statistics</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:15px">
+        <span class="user-chip" id="roleChip">● System online</span>
+        <button class="logout" id="logoutBtn">Sign out</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="view-overview" class="page-view active">
+      <div class="welcome">
+        <h1>Patient Overview</h1>
+        <p id="overviewDescription">Monitor patient health information from your connected cloud database.</p>
+      </div>
+
+      <section class="patient-bar">
+        <div>
+          <label for="patientSelect">SELECT PATIENT</label>
+          <select id="patientSelect">
+            <option value="">Loading patients...</option>
+          </select>
+        </div>
+        <p class="patient-details" id="patientInfo">Choose a patient to view their details.</p>
+      </section>
+
+      <div class="section-heading">
+        <h3>Vital Signs</h3>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span>Latest available readings</span>
+          <button id="generateReadingBtn" class="action-btn" type="button" disabled>+ Generate Demo Reading</button>
+          <button id="testAbnormalReadingBtn" class="action-btn" type="button" disabled style="background:#b42318">⚠ Test Abnormal Reading</button>
+        </div>
+      </div>
+      <p id="simulationStatus" class="muted-note">Demo readings are simulated for academic demonstration only.</p>
+
+      <section class="metrics" id="dashboard">
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-label">HEART RATE</span>
+            <span class="metric-icon">♡</span>
+          </div>
+          <div class="metric-value">
+            <span id="heartRate">--</span>
+            <span class="metric-unit">BPM</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-label">OXYGEN SATURATION</span>
+            <span class="metric-icon">◉</span>
+          </div>
+          <div class="metric-value">
+            <span id="spo2">--</span>
+            <span class="metric-unit">%</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-label">TEMPERATURE</span>
+            <span class="metric-icon">♨</span>
+          </div>
+          <div class="metric-value">
+            <span id="temperature">--</span>
+            <span class="metric-unit">°C</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-label">BLOOD PRESSURE</span>
+            <span class="metric-icon">⌁</span>
+          </div>
+          <div class="metric-value" style="font-size:25px">
+            <span id="bloodPressure">--</span>
+          </div>
+          <span class="metric-unit">mmHg</span>
+        </div>
+      </section>
+
+      <!-- HISTORICAL CHARTS -->
+      <section class="bottom-grid chart-grid">
+        <div class="info-card">
+          <h3>Heart Rate History</h3>
+          <canvas id="heartRateChart"></canvas><p class="chart-point-note">Hover over a point to see its exact reading and timestamp.</p>
+        </div>
+
+        <div class="info-card">
+          <h3>Oxygen Saturation History</h3>
+          <canvas id="spo2Chart"></canvas><p class="chart-point-note">Hover over a point to see its exact reading and timestamp.</p>
+        </div>
+      </section>
+
+      <!-- READING INFORMATION -->
+      <section class="bottom-grid">
+        <div class="info-card">
+          <h3>Reading Information</h3>
+          <div class="reading-status" id="readingMessage">
+            Select a patient to view the latest recorded vital signs.
+          </div>
+          <p id="lastUpdated">No reading selected.</p>
+        </div>
+
+        <div class="info-card">
+          <h3>Cloud Connection</h3>
+          <p class="empty-state">
+            Patient records are retrieved from the connected Firebase Cloud Firestore database.
+          </p>
+          <div class="cloud-status">
+            <span class="dot"></span>
+            Firebase connection initialised
+          </div>
+        </div>
+      </section>
+      </section>
+
+
+      <section id="view-monitoring" class="page-view">
+        <div class="page-intro">
+          <h1>Patient Monitoring</h1>
+          <p>Review the selected patient's latest simulated or recorded vital signs.</p>
+        </div>
+        <div class="action-row">
+          <div>
+            <strong id="monitorPatientName">No patient selected</strong>
+            <p class="muted-note">Values are informational and this academic prototype is not a medical diagnostic system.</p>
+          </div>
+          <button id="monitorGenerateBtn" class="action-btn" type="button" disabled>+ Generate Demo Reading</button>
+        </div>
+        <div class="info-grid">
+          <div class="info-tile"><small>Heart rate</small><strong id="monitorHeartRate">--</strong><div id="heartRateStatus"></div></div>
+          <div class="info-tile"><small>Oxygen saturation</small><strong id="monitorSpo2">--</strong><div id="spo2Status"></div></div>
+          <div class="info-tile"><small>Temperature</small><strong id="monitorTemperature">--</strong><div id="temperatureStatus"></div></div>
+          <div class="info-tile"><small>Blood pressure</small><strong id="monitorBloodPressure">--</strong><div id="bloodPressureStatus"></div></div>
+        </div>
+        <div class="info-card" style="margin-top:18px">
+          <h3>Monitoring summary</h3>
+          <p id="monitorSummary" class="muted-note">Select a patient to view monitoring information.</p>
+        </div>
+      </section>
+
+      <section id="view-records" class="page-view">
+        <div class="page-intro">
+          <h1>Patient Records</h1>
+          <p>Browse the selected patient's recent records. You can inspect timestamps and remove individual demo records.</p>
+        </div>
+        <div class="action-row">
+          <div>
+            <strong id="recordsPatientName">No patient selected</strong>
+            <p class="muted-note">Showing up to the 100 most recent readings for the selected patient.</p>
+          </div>
+          <button id="recordsRefreshBtn" class="action-btn secondary-btn" type="button">Refresh records</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date &amp; time</th><th>Heart rate</th><th>SpO₂</th><th>Temperature</th><th>Blood pressure</th><th>Source</th><th>Action</th></tr></thead>
+            <tbody id="recordsTableBody"><tr><td colspan="7" class="table-message">Select a patient to load records.</td></tr></tbody>
+          </table>
+        </div>
+        <p id="recordsStatus" class="muted-note" style="margin-top:12px">Records are stored in Cloud Firestore.</p>
+      </section>
+
+      <section id="view-alerts" class="page-view">
+        <div class="page-intro">
+          <h1>Patient Alerts</h1>
+          <p>Review abnormal vital-sign alerts generated by the cloud function for the selected patient.</p>
+        </div>
+        <div class="action-row">
+          <div>
+            <strong id="alertsPatientName">No patient selected</strong>
+            <p class="muted-note">Alerts update automatically when new readings are processed.</p>
+          </div>
+          <button id="alertsRefreshBtn" class="action-btn secondary-btn" type="button">Refresh alerts</button>
+        </div>
+        <div class="alert-stats">
+          <div class="alert-stat"><small>Total alerts</small><strong id="totalAlerts">0</strong></div>
+          <div class="alert-stat"><small>Unread alerts</small><strong id="unreadAlerts">0</strong></div>
+          <div class="alert-stat"><small>Critical alerts</small><strong id="criticalAlerts">0</strong></div>
+        </div>
+        <div id="alertsList" class="alert-list"><div class="alert-empty">Select a patient to view alerts.</div></div>
+        <p class="muted-note" style="margin-top:14px">Alert thresholds are illustrative rules for this academic prototype, not a medical diagnosis or substitute for professional care.</p>
+      </section>
+
+      <section id="view-cloud" class="page-view">
+        <div class="page-intro">
+          <h1>Cloud Database</h1>
+          <p>Connection and database information for the CarePulse Firebase backend.</p>
+        </div>
+        <div class="info-grid">
+          <div class="info-tile"><small>Cloud service</small><strong>Firebase Cloud Firestore</strong></div>
+          <div class="info-tile"><small>Connection status</small><strong id="cloudConnectionStatus">Checking...</strong></div>
+          <div class="info-tile"><small>Firebase project ID</small><strong id="cloudProjectId">--</strong></div>
+          <div class="info-tile"><small>Signed-in account</small><strong id="cloudUserEmail">--</strong></div>
+          <div class="info-tile"><small>Patient documents</small><strong id="cloudPatientCount">--</strong></div>
+          <div class="info-tile"><small>Selected patient's readings</small><strong id="cloudReadingCount">--</strong></div>
+        </div>
+        <div class="info-card" style="margin-top:18px">
+          <h3>How cloud storage is used</h3>
+          <p class="muted-note">Patient profiles are stored in the <code>patients</code> collection. Each patient's vital-sign history is stored in that patient's <code>readings</code> subcollection. The dashboard reads updates from Firestore in real time.</p>
+          <p class="muted-note">Firestore access is restricted by Firebase Authentication custom roles and patient-to-account mapping. This is an academic prototype; a real healthcare deployment would also require audit logging, privacy controls and regulatory review.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</section>
+
+<script type="module">
+
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  getDoc,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  query,
+  orderBy,
+  limit,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+
+
+/* FIREBASE CONFIGURATION */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBBf2OcawaDSIVkYnbtCrcusv5iOxWcsHY",
+  authDomain: "project-3c72ea75-f1b5-40c3-b52.firebaseapp.com",
+  projectId: "project-3c72ea75-f1b5-40c3-b52",
+  storageBucket: "project-3c72ea75-f1b5-40c3-b52.firebasestorage.app",
+  messagingSenderId: "371184229038",
+  appId: "1:371184229038:web:b58e2508bd9270f308eb3f",
+  measurementId: "G-VK0FC7ES6W"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+
+
+/* LISTENER AND CHART VARIABLES */
+
+let stopReadingListener = null;
+let stopHistoryListener = null;
+let stopRecordsListener = null;
+let stopAlertsListener = null;
+let currentUser = null;
+let currentRole = "";
+let currentPatientId = "";
+let assignedPatientId = "";
+
+let heartRateChart = null;
+let spo2Chart = null;
+
+
+/* LOGIN */
+
+$("loginBtn").addEventListener("click", async () => {
+
+  $("message").textContent = "";
+
+  try {
+
+    await signInWithEmailAndPassword(
+      auth,
+      $("email").value.trim(),
+      $("password").value
+    );
+
+  } catch (error) {
+
+    $("message").textContent = error.message;
+
+  }
+
+});
+
+
+/* LOGOUT */
+
+$("logoutBtn").addEventListener("click", () => {
+  signOut(auth);
+});
+
+
+/* AUTHENTICATION STATE AND ROLE SETUP */
+onAuthStateChanged(auth, async user => {
+  currentUser = user || null;
+  currentRole = "";
+  assignedPatientId = "";
+  currentPatientId = "";
+  if (stopReadingListener) stopReadingListener();
+  if (stopHistoryListener) stopHistoryListener();
+  if (stopRecordsListener) stopRecordsListener();
+  if (stopAlertsListener) stopAlertsListener();
+
+  if (heartRateChart) heartRateChart.destroy();
+  if (spo2Chart) spo2Chart.destroy();
+
+  $("loginPanel").style.display = user ? "none" : "grid";
+  $("app").style.display = user ? "block" : "none";
+  if (!user) return;
+
+  try {
+    const tokenResult = await user.getIdTokenResult(true);
+    currentRole = tokenResult.claims.role || "";
+    assignedPatientId = tokenResult.claims.patientId || "";
+
+    if (currentRole !== "admin" && currentRole !== "patient") {
+      throw new Error("This account has no authorised CarePulse role. Contact the administrator.");
+    }
+
+    $("roleChip").textContent = currentRole === "admin" ? "● Admin account" : "● Patient account";
+    configureRoleInterface();
+    await loadPatients();
+    loadCloudInformation();
+  } catch (error) {
+    console.error("Account setup failed:", error);
+    $("patientInfo").textContent = "Account setup failed: " + error.message;
+    $("simulationStatus").textContent = "Access could not be configured. Please sign out and contact the administrator.";
+  }
+});
+
+/* SHOW ONLY THE CONTROLS ALLOWED FOR EACH ROLE */
+function configureRoleInterface() {
+  const isAdmin = currentRole === "admin";
+  $("patientSelect").disabled = !isAdmin;
+  $("patientSelect").parentElement.style.display = isAdmin ? "block" : "none";
+  $("generateReadingBtn").style.display = isAdmin ? "inline-block" : "none";
+  $("monitorGenerateBtn").style.display = isAdmin ? "inline-block" : "none";
+  $("testAbnormalReadingBtn").style.display = isAdmin ? "inline-block" : "none";
+  $("simulationStatus").style.display = isAdmin ? "block" : "none";
+  $("cloudPatientCount").previousElementSibling.textContent = isAdmin ? "Patient documents" : "Accessible patient record";
+  $("overviewDescription").textContent = isAdmin
+    ? "Monitor patient health information from your connected cloud database."
+    : "View your own vital signs, reading history and alerts.";
+  $("recordsTableBody").closest("table").querySelector("thead tr th:last-child").textContent = isAdmin ? "Action" : "Access";
+}
+
+/* LOAD PATIENTS: ADMIN GETS ALL; PATIENT GETS ONLY THEIR CLAIM-LINKED DOCUMENT */
+async function loadPatients() {
+  const dropdown = $("patientSelect");
+  dropdown.innerHTML = '<option value="">Select a patient</option>';
+
+  try {
+    let patients = [];
+    if (currentRole === "admin") {
+      const snapshot = await getDocs(collection(db, "patients"));
+      patients = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else {
+      if (!assignedPatientId) throw new Error("Your account is missing its patient record link.");
+      const patientSnap = await getDoc(doc(db, "patients", assignedPatientId));
+      if (!patientSnap.exists()) throw new Error("Your linked patient record was not found.");
+      const patient = patientSnap.data();
+      if (patient.authUid !== currentUser.uid) throw new Error("Your patient record is not linked to this account.");
+      patients = [{ id: patientSnap.id, ...patient }];
+    }
+
+    patients.forEach(patient => {
+      const option = document.createElement("option");
+      option.value = patient.id;
+      option.textContent = patient.patientName || patient.name || patient.id;
+      option.dataset.name = patient.patientName || patient.name || "Patient";
+      option.dataset.age = patient.age ?? "";
+      dropdown.appendChild(option);
+    });
+
+    if (patients.length === 0) {
+      $("patientInfo").textContent = "No patient records found.";
+      return;
+    }
+
+    if (currentRole === "patient") {
+      dropdown.value = assignedPatientId;
+      dropdown.dispatchEvent(new Event("change"));
+    } else {
+      $("patientInfo").textContent = "Choose a patient to view their details.";
+      $("dashboard").style.display = "none";
+    }
+  } catch (error) {
+    console.error("Could not load patients:", error);
+    $("patientInfo").textContent = "Could not load patient records: " + error.message;
+  }
+}
+
+/* PATIENT SELECTION */
+
+$("patientSelect").addEventListener("change", event => {
+
+  if (stopReadingListener) stopReadingListener();
+  if (stopHistoryListener) stopHistoryListener();
+  if (stopAlertsListener) stopAlertsListener();
+
+  if (heartRateChart) heartRateChart.destroy();
+  if (spo2Chart) spo2Chart.destroy();
+
+  const patientId = event.target.value;
+  currentPatientId = patientId;
+  if (stopRecordsListener) stopRecordsListener();
+  $("generateReadingBtn").disabled = !patientId;
+  $("monitorGenerateBtn").disabled = !patientId;
+  $("testAbnormalReadingBtn").disabled = !patientId;
+  $("alertsPatientName").textContent = patientId ? event.target.selectedOptions[0].dataset.name : "No patient selected";
+  if (!patientId) {
+    $("alertsList").innerHTML = '<div class="alert-empty">Select a patient to view alerts.</div>';
+    $("totalAlerts").textContent = "0";
+    $("unreadAlerts").textContent = "0";
+    $("criticalAlerts").textContent = "0";
+  }
+  $("recordsPatientName").textContent = patientId ? event.target.selectedOptions[0].dataset.name : "No patient selected";
+  $("monitorPatientName").textContent = patientId ? event.target.selectedOptions[0].dataset.name : "No patient selected";
+
+  $("dashboard").style.display =
+    patientId ? "grid" : "none";
+
+  if (!patientId) {
+
+    $("patientInfo").textContent =
+      "Choose a patient to view their details.";
+
+    return;
+
+  }
+
+  const option = event.target.selectedOptions[0];
+
+  $("patientInfo").textContent =
+    `${option.dataset.name} · Age: ${option.dataset.age || "Not specified"}`;
+
+
+  /* LOAD HISTORY CHARTS */
+
+  loadHistory(patientId);
+  loadPatientAlerts(patientId);
+
+
+  /* LOAD LATEST READING */
+
+  const readingsRef = collection(
+    db,
+    "patients",
+    patientId,
+    "readings"
+  );
+
+  const latestQuery = query(
+    readingsRef,
+    orderBy("timestamp", "desc"),
+    limit(1)
+  );
+
+  stopReadingListener = onSnapshot(
+    latestQuery,
+
+    snapshot => {
+
+      if (snapshot.empty) {
+
+        $("heartRate").textContent = "--";
+        $("spo2").textContent = "--";
+        $("temperature").textContent = "--";
+        $("bloodPressure").textContent = "--";
+
+        $("readingMessage").textContent =
+          "No readings available for this patient.";
+
+        $("lastUpdated").textContent =
+          "Waiting for the first reading.";
+
+        return;
+
+      }
+
+      const reading = snapshot.docs[0].data();
+
+      $("heartRate").textContent =
+        reading.heartRate ?? "--";
+
+      $("spo2").textContent =
+        reading.spo2 ?? "--";
+
+      $("temperature").textContent =
+        reading.temperature ?? "--";
+
+      $("bloodPressure").textContent =
+        reading.bloodPressure ?? "--";
+
+      updateMonitoringPanel(reading);
+      updateCloudReadingCount(patientId);
+
+      let time = reading.timestamp;
+
+      if (time?.toDate) {
+        time = time.toDate();
+      } else if (time) {
+        time = new Date(time);
+      }
+
+      $("readingMessage").textContent =
+        "Latest patient reading loaded successfully.";
+
+      $("lastUpdated").textContent =
+        time && !isNaN(time.getTime())
+          ? "Last updated: " + time.toLocaleString()
+          : "Latest reading received.";
+
+    },
+
+    error => {
+
+      $("readingMessage").textContent =
+        "Could not retrieve readings: " + error.message;
+
+    }
+
+  );
+
+});
+
+
+
+/* SIDEBAR NAVIGATION */
+document.querySelectorAll(".nav-item[data-view]").forEach(button => {
+  button.addEventListener("click", () => {
+    const name = button.dataset.view;
+    document.querySelectorAll(".page-view").forEach(v => v.classList.remove("active"));
+    $("view-" + name).classList.add("active");
+    document.querySelectorAll(".nav-item[data-view]").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    if (name === "records" && currentPatientId) loadPatientRecords(currentPatientId);
+    if (name === "alerts" && currentPatientId) loadPatientAlerts(currentPatientId);
+    if (name === "cloud") loadCloudInformation();
+  });
+});
+
+/* MONITORING PAGE: simplified demo flags, not medical diagnosis */
+function setStatus(id, label, level) {
+  $(id).innerHTML = `<span class="status-pill status-${level}">${label}</span>`;
+}
+function updateMonitoringPanel(r) {
+  $("monitorHeartRate").textContent = r.heartRate ?? "--";
+  $("monitorSpo2").textContent = r.spo2 ?? "--";
+  $("monitorTemperature").textContent = r.temperature ?? "--";
+  $("monitorBloodPressure").textContent = r.bloodPressure ?? "--";
+  const hr=Number(r.heartRate), ox=Number(r.spo2), t=Number(r.temperature);
+  const bp=String(r.bloodPressure||"").split("/").map(Number), sys=bp[0], dia=bp[1];
+  const a=!Number.isFinite(hr)?"warning":(hr<60||hr>100?"warning":"normal");
+  const b=!Number.isFinite(ox)?"warning":(ox<95?"danger":"normal");
+  const c=!Number.isFinite(t)?"warning":(t<36.1||t>37.5?"warning":"normal");
+  const d=(!Number.isFinite(sys)||!Number.isFinite(dia))?"warning":
+    ((sys>=140||dia>=90||sys<90||dia<60)?"warning":"normal");
+  setStatus("heartRateStatus",a==="normal"?"Within demo range":"Outside demo range",a);
+  setStatus("spo2Status",b==="normal"?"Within demo range":"Below demo range",b);
+  setStatus("temperatureStatus",c==="normal"?"Within demo range":"Outside demo range",c);
+  setStatus("bloodPressureStatus",d==="normal"?"Within demo range":"Outside demo range",d);
+  const flagged=[a,b,c,d].filter(x=>x!=="normal").length;
+  $("monitorSummary").textContent=flagged
+    ? `${flagged} value(s) outside this prototype's illustrative demo ranges. Not a medical diagnosis.`
+    : "All displayed values are within this prototype's illustrative demo ranges. Not clinical thresholds.";
+}
+
+/* PATIENT RECORDS TABLE AND DELETE */
+function readingTime(ts) {
+  let d=ts;
+  if(d && typeof d.toDate==="function") d=d.toDate();
+  else d=d?new Date(d):null;
+  return d&&!Number.isNaN(d.getTime())?d.toLocaleString():"Unknown time";
+}
+function loadPatientRecords(patientId) {
+  if(stopRecordsListener) stopRecordsListener();
+  const q=query(collection(db,"patients",patientId,"readings"),orderBy("timestamp","desc"),limit(100));
+  $("recordsTableBody").innerHTML='<tr><td colspan="7" class="table-message">Loading...</td></tr>';
+  stopRecordsListener=onSnapshot(q,snap=>{
+    $("recordsTableBody").innerHTML="";
+    if(snap.empty) {
+      $("recordsTableBody").innerHTML='<tr><td colspan="7" class="table-message">No readings found.</td></tr>';
+      $("recordsStatus").textContent="No readings stored for this patient.";
+      updateCloudReadingCount(patientId,0); return;
+    }
+    snap.forEach(ds=>{
+      const r=ds.data(), tr=document.createElement("tr");
+      const vals=[readingTime(r.timestamp),r.heartRate==null?"--":r.heartRate+" BPM",
+        r.spo2==null?"--":r.spo2+"%",r.temperature==null?"--":r.temperature+" °C",
+        r.bloodPressure??"--",r.source==="abnormal_test"?"Abnormal test":(r.source==="simulated"?"Simulated":"Recorded")];
+      vals.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+      const td=document.createElement("td");
+      if (currentRole === "admin") {
+        const del=document.createElement("button");
+        del.className="danger-btn";del.textContent="Delete";del.type="button";
+        del.addEventListener("click",async()=>{
+          if(!confirm("Permanently delete this reading from Firestore?")) return;
+          del.disabled=true;del.textContent="Deleting...";
+          try {
+            await deleteDoc(doc(db,"patients",patientId,"readings",ds.id));
+            $("recordsStatus").textContent="Reading deleted. Dashboard and charts update automatically.";
+          } catch(e) {
+            $("recordsStatus").textContent="Delete failed: "+e.message;
+            del.disabled=false;del.textContent="Delete";
+          }
+        });
+        td.appendChild(del);
+      } else {
+        td.textContent = "View only";
+      }
+      tr.appendChild(td);$("recordsTableBody").appendChild(tr);
+    });
+    $("recordsStatus").textContent=`Showing ${snap.size} most recent reading(s).`;
+    updateCloudReadingCount(patientId,snap.size);
+  },e=>{$("recordsTableBody").innerHTML=`<tr><td colspan="7" class="table-message">Could not load: ${e.message}</td></tr>`;});
+}
+$("recordsRefreshBtn").addEventListener("click",()=>{if(currentPatientId)loadPatientRecords(currentPatientId);});
+
+/* PATIENT ALERTS: live Firestore updates and mark-as-read */
+function loadPatientAlerts(patientId) {
+  if (stopAlertsListener) stopAlertsListener();
+  if (!patientId) return;
+  $("alertsPatientName").textContent = $("patientSelect").selectedOptions[0]?.dataset.name || "Selected patient";
+  $("alertsList").innerHTML = '<div class="alert-empty">Loading alerts...</div>';
+  const alertsQuery = query(
+    collection(db, "patients", patientId, "alerts"),
+    orderBy("createdAt", "desc"),
+    limit(100)
+  );
+  stopAlertsListener = onSnapshot(alertsQuery, snapshot => {
+    const docs = snapshot.docs;
+    const unread = docs.filter(d => (d.data().status || "unread") === "unread").length;
+    const critical = docs.filter(d => d.data().severity === "critical").length;
+    $("totalAlerts").textContent = docs.length;
+    $("unreadAlerts").textContent = unread;
+    $("criticalAlerts").textContent = critical;
+    $("alertsList").innerHTML = "";
+    if (snapshot.empty) {
+      $("alertsList").innerHTML = '<div class="alert-empty">No alerts found for this patient. New alerts will appear here automatically.</div>';
+      return;
+    }
+    docs.forEach(alertDoc => {
+      const a = alertDoc.data();
+      const isCritical = a.severity === "critical";
+      const isRead = (a.status || "unread") === "read";
+      const card = document.createElement("article");
+      card.className = `alert-card ${isCritical ? "critical" : ""} ${isRead ? "read" : ""}`;
+      const info = document.createElement("div");
+      const heading = document.createElement("h3");
+      heading.textContent = a.message || String(a.type || "Vital alert").replaceAll("_", " ");
+      const meta = document.createElement("div");
+      meta.className = "alert-meta";
+      const date = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString() : "Time unavailable";
+      meta.textContent = `Patient: ${a.patientName || "Patient"} · Value: ${a.value || "--"} · ${date}`;
+      const badge = document.createElement("span");
+      badge.className = `status-pill ${isCritical ? "status-danger" : "status-warning"}`;
+      badge.textContent = `${a.severity || "warning"} · ${isRead ? "Read" : "Unread"}`;
+      info.appendChild(heading); info.appendChild(meta); info.appendChild(badge);
+      const actions = document.createElement("div");
+      actions.className = "alert-actions";
+      if (!isRead) {
+        const mark = document.createElement("button");
+        mark.type = "button"; mark.className = "action-btn secondary-btn"; mark.textContent = "Mark as read";
+        mark.addEventListener("click", async () => {
+          mark.disabled = true; mark.textContent = "Updating...";
+          try {
+            await updateDoc(doc(db, "patients", patientId, "alerts", alertDoc.id), { status: "read" });
+          } catch (error) {
+            mark.disabled = false; mark.textContent = "Mark as read";
+            alert("Could not update alert: " + error.message);
+          }
+        });
+        actions.appendChild(mark);
+      }
+      card.appendChild(info); card.appendChild(actions); $("alertsList").appendChild(card);
+    });
+  }, error => {
+    $("alertsList").innerHTML = `<div class="alert-empty">Could not load alerts: ${error.message}</div>`;
+  });
+}
+$("alertsRefreshBtn").addEventListener("click", () => {
+  if (currentPatientId) loadPatientAlerts(currentPatientId);
+});
+
+/* CLOUD DATABASE PAGE */
+async function loadCloudInformation() {
+  $("cloudProjectId").textContent=firebaseConfig.projectId;
+  $("cloudUserEmail").textContent=currentUser?.email||"Authenticated user";
+  $("cloudConnectionStatus").textContent="Connected";
+  try {
+    if (currentRole === "admin") {
+      const patients=await getDocs(collection(db,"patients"));
+      $("cloudPatientCount").textContent=patients.size;
+    } else {
+      $("cloudPatientCount").textContent="1 (your record)";
+    }
+    if(currentPatientId) {
+      const readings=await getDocs(collection(db,"patients",currentPatientId,"readings"));
+      $("cloudReadingCount").textContent=readings.size;
+    } else $("cloudReadingCount").textContent="Select a patient";
+  } catch(e) {
+    $("cloudConnectionStatus").textContent="Unable to read";
+    $("cloudPatientCount").textContent="--";$("cloudReadingCount").textContent="--";
+  }
+}
+async function updateCloudReadingCount(patientId,count=null) {
+  if(!patientId)return;
+  if(count!==null){$("cloudReadingCount").textContent=count;return;}
+  try {
+    const snap=await getDocs(collection(db,"patients",patientId,"readings"));
+    $("cloudReadingCount").textContent=snap.size;
+  } catch(e){$("cloudReadingCount").textContent="--";}
+}
+
+/* SIMULATED READING SAVED TO CLOUD FIRESTORE */
+async function generateDemoReading() {
+  if (currentRole !== "admin") { $("simulationStatus").textContent = "Only Admin accounts can generate demo readings."; return; }
+  const patientId=currentPatientId;
+  if(!patientId){$("simulationStatus").textContent="Select a patient first.";return;}
+  const buttons=[$("generateReadingBtn"),$("monitorGenerateBtn")];
+  buttons.forEach(b=>{b.disabled=true;b.textContent="Saving reading...";});
+  const rand=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+  const reading={
+    heartRate:rand(68,102),spo2:rand(95,100),
+    temperature:Number((36.4+Math.random()*0.9).toFixed(1)),
+    bloodPressure:`${rand(112,132)}/${rand(70,86)}`,
+    timestamp:serverTimestamp(),source:"simulated"
+  };
+  try {
+    await addDoc(collection(db,"patients",patientId,"readings"),reading);
+    $("simulationStatus").textContent="Demo reading saved to Firestore. Latest values and charts update automatically.";
+  } catch(e) {
+    $("simulationStatus").textContent="Could not save demo reading: "+e.message;
+  } finally {
+    buttons.forEach(b=>{b.disabled=!currentPatientId;b.textContent="+ Generate Demo Reading";});
+  }
+}
+$("generateReadingBtn").addEventListener("click",generateDemoReading);
+$("monitorGenerateBtn").addEventListener("click",generateDemoReading);
+
+
+/* ONE-CLICK ABNORMAL READING TEST FOR CLOUD FUNCTION */
+async function testAbnormalReading() {
+  if (currentRole !== "admin") { $("simulationStatus").textContent = "Only Admin accounts can run the abnormal-reading test."; return; }
+  const patientId = currentPatientId;
+  if (!patientId) { $("simulationStatus").textContent = "Select a patient first."; return; }
+  const button = $("testAbnormalReadingBtn");
+  button.disabled = true; button.textContent = "Saving test reading...";
+  const testReading = {
+    heartRate: 145,
+    spo2: 88,
+    temperature: 39.2,
+    bloodPressure: "180/120",
+    timestamp: serverTimestamp(),
+    source: "abnormal_test"
+  };
+  try {
+    await addDoc(collection(db, "patients", patientId, "readings"), testReading);
+    $("simulationStatus").textContent = "Abnormal test reading saved. The cloud function is processing alerts.";
+  } catch (error) {
+    $("simulationStatus").textContent = "Test failed: " + error.message;
+  } finally {
+    button.disabled = !currentPatientId;
+    button.textContent = "⚠ Test Abnormal Reading";
+  }
+}
+$("testAbnormalReadingBtn").addEventListener("click", testAbnormalReading);
+
+/* HISTORICAL CHARTS FROM FIRESTORE */
+
+function loadHistory(patientId) {
+
+  const readingsRef = collection(
+    db,
+    "patients",
+    patientId,
+    "readings"
+  );
+
+  const historyQuery = query(
+    readingsRef,
+    orderBy("timestamp", "desc"),
+    limit(12)
+  );
+
+  stopHistoryListener = onSnapshot(
+    historyQuery,
+
+    snapshot => {
+
+      const readings = snapshot.docs
+        .map(doc => doc.data())
+        .reverse();
+
+
+      if (heartRateChart) heartRateChart.destroy();
+      if (spo2Chart) spo2Chart.destroy();
+
+
+      const labels = readings.map(reading => {
+
+        let time = reading.timestamp;
+
+        if (time && typeof time.toDate === "function") {
+          time = time.toDate();
+        } else {
+          time = new Date(time);
+        }
+
+        return Number.isNaN(time.getTime())
+          ? "Unknown"
+          : time.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit"
+            });
+
+      });
+
+
+      const heartRates = readings.map(reading => {
+
+        const value = Number(reading.heartRate);
+
+        return Number.isFinite(value) ? value : null;
+
+      });
+
+
+      const oxygenLevels = readings.map(reading => {
+
+        const value = Number(reading.spo2);
+
+        return Number.isFinite(value) ? value : null;
+
+      });
+
+
+      const commonOptions = {
+
+        responsive: true,
+
+        maintainAspectRatio: true,
+
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              title: items => items.length ? "Recorded at: " + items[0].label : "",
+              label: item => item.dataset.label + ": " + item.formattedValue
+            }
+          }
+        },
+
+        scales: {
+          y: {
+            beginAtZero: false
+          }
+        }
+
+      };
+
+
+      /* HEART RATE CHART */
+
+      heartRateChart = new Chart(
+        $("heartRateChart"),
+
+        {
+          type: "line",
+
+          data: {
+
+            labels,
+
+            datasets: [{
+
+              label: "Heart Rate (BPM)",
+
+              data: heartRates,
+
+              borderColor: "#176b87",
+
+              backgroundColor: "rgba(23,107,135,0.12)",
+
+              fill: true,
+
+              tension: 0.35,
+
+              spanGaps: true
+
+            }]
+
+          },
+
+          options: commonOptions
+
+        }
+
+      );
+
+
+      /* SPO2 CHART */
+
+      spo2Chart = new Chart(
+        $("spo2Chart"),
+
+        {
+          type: "line",
+
+          data: {
+
+            labels,
+
+            datasets: [{
+
+              label: "SpO2 (%)",
+
+              data: oxygenLevels,
+
+              borderColor: "#19a69a",
+
+              backgroundColor: "rgba(25,166,154,0.12)",
+
+              fill: true,
+
+              tension: 0.35,
+
+              spanGaps: true
+
+            }]
+
+          },
+
+          options: {
+
+            ...commonOptions,
+
+            scales: {
+
+              y: {
+                min: 80,
+                max: 100
+              }
+
+            }
+
+          }
+
+        }
+
+      );
+
+    },
+
+    error => {
+
+      console.error("History chart error:", error);
+
+      $("readingMessage").textContent =
+        "Could not load history charts: " + error.message;
+
+    }
+
+  );
+
+}
+
+</script>
+
+</body>
+</html>
