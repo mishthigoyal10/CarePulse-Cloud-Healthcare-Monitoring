@@ -286,8 +286,8 @@ CarePulse is an academic cloud computing project developed for demonstration and
 
 This project was collaboratively developed by:
 
-1. **[Your Name]** – Project Contributor
-2. **[Partner Name]** – Project Contributor
+1. **[Your Name]** – Shivam Dalal
+2. **[Partner Name]** – Mishti goyal
 
 Both contributors worked on the development and implementation of the CarePulse project.
 
